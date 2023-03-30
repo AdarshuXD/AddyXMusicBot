@@ -1,31 +1,27 @@
 import asyncio
 
 from pyrogram import filters
-from pyrogram import Client, filters
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+from pyrogram.types import (InlineKeyboardButton,
+                            InlineKeyboardMarkup, Message)
 from youtubesearchpython.__future__ import VideosSearch
 
 import config
 from config import BANNED_USERS
-from config.config import OWNER_ID, MUSIC_BOT_NAME
+from config.config import OWNER_ID
 from strings import get_command, get_string
 from AddyXMusic import Telegram, YouTube, app
 from AddyXMusic.misc import SUDOERS
 from AddyXMusic.plugins.play.playlist import del_plist_msg
 from AddyXMusic.plugins.sudo.sudoers import sudoers_list
-from AddyXMusic.utils.database import (
-    add_served_chat,
-    add_served_user,
-    blacklisted_chats,
-    get_assistant,
-    get_lang,
-    get_userss,
-    is_on_off,
-    is_served_private_chat,
-)
+from AddyXMusic.utils.database import (add_served_chat,
+                                       add_served_user,
+                                       blacklisted_chats,
+                                       get_assistant, get_lang,
+                                       get_userss, is_on_off,
+                                       is_served_private_chat)
 from AddyXMusic.utils.decorators.language import LanguageStart
-from AddyXMusic.utils.inline import help_pannel, private_panel, start_pannel
-from AddyXMusic.utils.command import commandpro
+from AddyXMusic.utils.inline import (help_pannel, private_panel,
+                                     start_pannel)
 
 loop = asyncio.get_running_loop()
 
@@ -43,12 +39,14 @@ async def start_comm(client, message: Message, _):
         name = message.text.split(None, 1)[1]
         if name[0:4] == "help":
             keyboard = help_pannel(_)
-            return await message.reply_text(_["help_1"], reply_markup=keyboard)
+            return await message.reply_text(
+                _["help_1"], reply_markup=keyboard
+            )
         if name[0:4] == "song":
             return await message.reply_text(_["song_2"])
         if name[0:3] == "sta":
             m = await message.reply_text(
-                "🥱 Getting Your Personal Stats From {config.MUSIC_BOT_NAME} Server."
+                "🔎 Fetching your personal stats.!"
             )
             stats = await get_userss(message.from_user.id)
             tot = len(stats)
@@ -84,14 +82,16 @@ async def start_comm(client, message: Message, _):
                     details = stats.get(vidid)
                     title = (details["title"][:35]).title()
                     if vidid == "telegram":
-                        msg += f"🔗[Telegram Media](https://t.me/AddySupport) ** Played {count} Times**\n\n"
+                        msg += f"🔗[Telegram Files and Audios](https://t.me/telegram) ** played {count} times**\n\n"
                     else:
                         msg += f"🔗 [{title}](https://www.youtube.com/watch?v={vidid}) ** played {count} times**\n\n"
                 msg = _["ustats_2"].format(tot, tota, limit) + msg
                 return videoid, msg
 
             try:
-                videoid, msg = await loop.run_in_executor(None, get_stats)
+                videoid, msg = await loop.run_in_executor(
+                    None, get_stats
+                )
             except Exception as e:
                 print(e)
                 return
@@ -106,7 +106,7 @@ async def start_comm(client, message: Message, _):
                 sender_name = message.from_user.first_name
                 return await app.send_message(
                     config.LOG_GROUP_ID,
-                    f"{message.from_user.mention} Just Started The Bot To Check <code>SudoList</code>\n\n**User ID:** {sender_id}\n**Username:** {sender_name}",
+                    f"{message.from_user.mention} has just started bot to check <code>SUDOLIST</code>\n\n**USER ID:** {sender_id}\n**USER NAME:** {sender_name}",
                 )
             return
         if name[0:3] == "lyr":
@@ -116,11 +116,13 @@ async def start_comm(client, message: Message, _):
             if lyrics:
                 return await Telegram.send_split_text(message, lyrics)
             else:
-                return await message.reply_text("Failed To Get Lyrics.")
+                return await message.reply_text(
+                    "Failed to get lyrics."
+                )
         if name[0:3] == "del":
             await del_plist_msg(client=client, message=message, _=_)
         if name[0:3] == "inf":
-            m = await message.reply_text("🔎")
+            m = await message.reply_text("🔎 Fetching Info!")
             query = (str(name)).replace("info_", "", 1)
             query = f"https://www.youtube.com/watch?v={query}"
             results = VideosSearch(query, limit=1)
@@ -128,29 +130,35 @@ async def start_comm(client, message: Message, _):
                 title = result["title"]
                 duration = result["duration"]
                 views = result["viewCount"]["short"]
-                thumbnail = result["thumbnails"][0]["url"].split("?")[0]
+                thumbnail = result["thumbnails"][0]["url"].split("?")[
+                    0
+                ]
                 channellink = result["channel"]["link"]
                 channel = result["channel"]["name"]
                 link = result["link"]
                 published = result["publishedTime"]
             searched_text = f"""
-😲**Track Information**😲
+🔍__**Video Track Information**__
 
-~ **Tittle:** {title}
+❇️**Title:** {title}
 
-~ **Duration:** {duration} ᴍɪɴᴜᴛᴇs
-~ **Views:** `{views}`
-~ **Published On:** {published}
-~ **Channel:** {channel}
-~ **Channel Link:** [Visit Channel]({channellink})
-~ **Link:** [Watch On YouTube]({link})
+⏳**Duration:** {duration} Mins
+👀**Views:** `{views}`
+⏰**Published Time:** {published}
+🎥**Channel Name:** {channel}
+📎**Channel Link:** [Visit From Here]({channellink})
+🔗**Video Link:** [Link]({link})
 
-~ Search Powered By {config.MUSIC_BOT_NAME}"""
+⚡️ __Searched Powered By {config.MUSIC_BOT_NAME}__"""
             key = InlineKeyboardMarkup(
                 [
                     [
-                        InlineKeyboardButton(text="• YouTube •", url=f"{link}"),
-                        InlineKeyboardButton(text="• Close •", callback_data="close"),
+                        InlineKeyboardButton(
+                            text="🎥 Watch ", url=f"{link}"
+                        ),
+                        InlineKeyboardButton(
+                            text="🔄 Close", callback_data="close"
+                        ),
                     ],
                 ]
             )
@@ -167,7 +175,7 @@ async def start_comm(client, message: Message, _):
                 sender_name = message.from_user.first_name
                 return await app.send_message(
                     config.LOG_GROUP_ID,
-                    f"{message.from_user.mention} Just Started Bot To Check<code>Track Information</code>\n\n**User ID:** {sender_id}\n**Username:** {sender_name}",
+                    f"{message.from_user.mention} has just started bot to check <code>VIDEO INFORMATION</code>\n\n**USER ID:** {sender_id}\n**USER NAME:** {sender_name}",
                 )
     else:
         try:
@@ -180,7 +188,9 @@ async def start_comm(client, message: Message, _):
             try:
                 await message.reply_photo(
                     photo=config.START_IMG_URL,
-                    caption=_["start_2"].format(config.MUSIC_BOT_NAME),
+                    caption=_["start_2"].format(
+                        config.MUSIC_BOT_NAME
+                    ),
                     reply_markup=InlineKeyboardMarkup(out),
                 )
             except:
@@ -198,7 +208,7 @@ async def start_comm(client, message: Message, _):
             sender_name = message.from_user.first_name
             return await app.send_message(
                 config.LOG_GROUP_ID,
-                f"{message.from_user.mention} Just Started Bot.\n\n**User ID:** {sender_id}\n**Username:** {sender_name}",
+                f"{message.from_user.mention} has just started Bot.\n\n**USER ID:** {sender_id}\n**USER NAME:** {sender_name}",
             )
 
 
@@ -212,7 +222,9 @@ async def start_comm(client, message: Message, _):
 async def testbot(client, message: Message, _):
     out = start_pannel(_)
     return await message.reply_text(
-        _["start_1"].format(message.chat.title, config.MUSIC_BOT_NAME),
+        _["start_1"].format(
+            message.chat.title, config.MUSIC_BOT_NAME
+        ),
         reply_markup=InlineKeyboardMarkup(out),
     )
 
@@ -226,7 +238,7 @@ async def welcome(client, message: Message):
     if config.PRIVATE_BOT_MODE == str(True):
         if not await is_served_private_chat(message.chat.id):
             await message.reply_text(
-                "**Private Music Bot**\n\nOnly For The Chats Authorised By My Owner, Request In My Owner's PM To Authorise You Chat And If You Don't Want To Do So Then Fu*k Off Because I'm Leaving."
+                "**Private Music Bot**\n\nOnly for authorized chats from the owner. Ask my owner to allow your chat first."
             )
             return await app.leave_chat(message.chat.id)
     else:
@@ -259,24 +271,16 @@ async def welcome(client, message: Message):
                 )
             if member.id in config.OWNER_ID:
                 return await message.reply_text(
-                    _["start_4"].format(config.MUSIC_BOT_NAME, member.mention)
+                    _["start_4"].format(
+                        config.MUSIC_BOT_NAME, member.mention
+                    )
                 )
             if member.id in SUDOERS:
                 return await message.reply_text(
-                    _["start_5"].format(config.MUSIC_BOT_NAME, member.mention)
+                    _["start_5"].format(
+                        config.MUSIC_BOT_NAME, member.mention
+                    )
                 )
             return
         except:
             return
-
-
-@app.on_message(commandpro(["/alive", "Addy"]) & ~filters.edited)
-async def start(client: Client, message: Message):
-    await message.reply_photo(
-        photo=f"https://telegra.ph/file/76ad7bbcb112404cf34a3.jpg",
-        caption=f"""━━━━━━━━━━━━━━━━━━━━━━━━\n\n✪ Hello Dear, User {MUSIC_BOT_NAME} Is Working And Functing Properly\n\n💞 If You Have Any Questions Then\nDm To My Owner [Owner](https://t.me/Love_You_AD) Make Sure To Star Our Project...\n\n━━━━━━━━━━━━━━━━━━━━━━━━
-""",
-        reply_markup=InlineKeyboardMarkup(
-            [[InlineKeyboardButton("🌼 Addy Chat 💮", url=f"https://t.me/AddySupport")]]
-        ),
-    )
