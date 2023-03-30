@@ -1,7 +1,7 @@
 from pyrogram import filters
 from pyrogram.types import Message
 
-from config import BANNED_USERS, MONGO_DB_URI, OWNER_ID, MUSIC_BOT_NAME
+from config import BANNED_USERS, MONGO_DB_URI, OWNER_ID
 from strings import get_command
 from AddyXMusic import app
 from AddyXMusic.misc import SUDOERS
@@ -14,54 +14,64 @@ DELSUDO_COMMAND = get_command("DELSUDO_COMMAND")
 SUDOUSERS_COMMAND = get_command("SUDOUSERS_COMMAND")
 
 
-@app.on_message(filters.command(ADDSUDO_COMMAND) & filters.user(OWNER_ID))
+@app.on_message(
+    filters.command(ADDSUDO_COMMAND) & filters.user(OWNER_ID)
+)
 @language
 async def useradd(client, message: Message, _):
     if MONGO_DB_URI is None:
         return await message.reply_text(
-            "**Due To {MUSIC_BOT_NAME}'s Privacy Issues, You Can't Manage Sudo Users On {MUSIC_BOT_NAME} Database.\n\n Please Add Your Mongo Database In Vars To Use This Feature.**"
+            "**Due to bot's privacy issues, You can't manage sudo users when you're using Addy's Database.\n\n Please fill your MONGO_DB_URI in your vars to use this feature**"
         )
     if not message.reply_to_message:
         if len(message.command) != 2:
-            return await message.reply_text(_["auth_1"])
+            return await message.reply_text(_["general_1"])
         user = message.text.split(None, 1)[1]
         if "@" in user:
             user = user.replace("@", "")
         user = await app.get_users(user)
         if user.id in SUDOERS:
-            return await message.reply_text(_["sudo_1"].format(user.mention))
+            return await message.reply_text(
+                _["sudo_1"].format(user.mention)
+            )
         added = await add_sudo(user.id)
         if added:
             SUDOERS.add(user.id)
             await message.reply_text(_["sudo_2"].format(user.mention))
         else:
-            await message.reply_text("ғᴀɪʟᴇᴅ.")
+            await message.reply_text("Failed")
         return
     if message.reply_to_message.from_user.id in SUDOERS:
         return await message.reply_text(
-            _["sudo_1"].format(message.reply_to_message.from_user.mention)
+            _["sudo_1"].format(
+                message.reply_to_message.from_user.mention
+            )
         )
     added = await add_sudo(message.reply_to_message.from_user.id)
     if added:
         SUDOERS.add(message.reply_to_message.from_user.id)
         await message.reply_text(
-            _["sudo_2"].format(message.reply_to_message.from_user.mention)
+            _["sudo_2"].format(
+                message.reply_to_message.from_user.mention
+            )
         )
     else:
-        await message.reply_text("ғᴀɪʟᴇᴅ.")
+        await message.reply_text("Failed")
     return
 
 
-@app.on_message(filters.command(DELSUDO_COMMAND) & filters.user(OWNER_ID))
+@app.on_message(
+    filters.command(DELSUDO_COMMAND) & filters.user(OWNER_ID)
+)
 @language
 async def userdel(client, message: Message, _):
     if MONGO_DB_URI is None:
         return await message.reply_text(
-            "**Due To {MUSIC_BOT_NAME}'s Privacy Issues, You Can't Manage Sudo Users On {MUSIC_BOT_NAME} Database.\n\n Please Add Your Mongo Database In Vars To Use This Feature.**"
+            "**Due to bot's privacy issues, You can't manage sudo users when you're using Addy's Database.\n\n Please fill your MONGO_DB_URI in your vars to use this feature**"
         )
     if not message.reply_to_message:
         if len(message.command) != 2:
-            return await message.reply_text(_["auth_1"])
+            return await message.reply_text(_["general_1"])
         user = message.text.split(None, 1)[1]
         if "@" in user:
             user = user.replace("@", "")
@@ -83,22 +93,20 @@ async def userdel(client, message: Message, _):
         SUDOERS.remove(user_id)
         await message.reply_text(_["sudo_4"])
         return
-    await message.reply_text(f"Something Went Wrong.")
+    await message.reply_text(f"Something wrong happened.")
 
 
 @app.on_message(filters.command(SUDOUSERS_COMMAND) & ~BANNED_USERS)
 @language
 async def sudoers_list(client, message: Message, _):
-    if message.from_user.id not in SUDOERS:
-        return await message.reply_text(
-            "» **😁 Lol Only My Team (Addy) Can Do This Niga\n» 🤫 Coz Addy Doesn't Allow You To Perform This Action Better Suggestion For You To Join** @AddySupport"
-        )
     text = _["sudo_5"]
     count = 0
     for x in OWNER_ID:
         try:
             user = await app.get_users(x)
-            user = user.first_name if not user.mention else user.mention
+            user = (
+                user.first_name if not user.mention else user.mention
+            )
             count += 1
         except Exception:
             continue
@@ -108,7 +116,11 @@ async def sudoers_list(client, message: Message, _):
         if user_id not in OWNER_ID:
             try:
                 user = await app.get_users(user_id)
-                user = user.first_name if not user.mention else user.mention
+                user = (
+                    user.first_name
+                    if not user.mention
+                    else user.mention
+                )
                 if smex == 0:
                     smex += 1
                     text += _["sudo_6"]
